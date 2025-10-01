@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Pintando la Palabra</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Meta Pixel Code -->
+  <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1116979890524870'); 
+    fbq('track', 'PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=1116979890524870&ev=PageView&noscript=1"
+  /></noscript>
+  <!-- End Meta Pixel Code -->
+</head>
+<body>
+  <div class="login-container">
+    <img src="icon-512.png" alt="Logo" class="logo">
+    <h1>Pintando la Palabra</h1>
+    <p class="subtitle">Coloreando historias de la Biblia</p>
+
+    <form id="loginForm">
+      <label for="email">Gmail</label>
+      <input type="email" id="email" placeholder="Escribe tu Gmail" required>
+      <button type="submit">Ingresar</button>
+    </form>
+
+    <p id="errorMsg" class="error"></p>
+
+    <div class="checkout">
+      <p>¿Aún no tienes acceso?</p>
+      <!-- 🔗 Checkout actualizado -->
+      <a id="checkoutBtn" href="https://pintando-a-palabra.pay.yampi.com.br/r/B0H10Z6JLH" target="_blank">
+        Ir al Checkout
+      </a>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+    // ⚙️ Configuración de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDN2p43zoaWoFuRcxrBMmNE8_Cm0d0ecw8",
+      authDomain: "pintando-a-palavra-fnl.firebaseapp.com",
+      projectId: "pintando-a-palavra-fnl",
+      storageBucket: "pintando-a-palavra-fnl.firebasestorage.app",
+      messagingSenderId: "394858613454",
+      appId: "1:394858613454:web:68ecc607c0414bd7779e9f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // 🔑 Validación del login
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim().toLowerCase();
+      const errorMsg = document.getElementById("errorMsg");
+
+      errorMsg.textContent = "⏳ Verificando...";
+
+      // Evento Pixel: LoginAttempt al hacer clic en Ingresar
+      fbq('trackCustom', 'LoginAttempt', {email_domain: email.split('@')[1] || 'unknown'});
+
+      try {
+        const ref = doc(db, "usuarios", email);
+        const snap = await getDoc(ref);
+
+        if (snap.exists()) {
+          // Evento Pixel: CompleteRegistration
+          fbq('track', 'CompleteRegistration', {
+            content_name: 'Login Gmail',
+            method: 'EmailForm'
+          });
+
+          // 🔑 Siempre guarda en localStorage
+          localStorage.setItem("savedEmail", email);
+          localStorage.setItem("isLogged", "true");
+
+          errorMsg.textContent = "✅ ¡Acceso concedido!";
+          setTimeout(() => window.location.href = "index.html", 500);
+        } else {
+          errorMsg.textContent = "❌ Gmail no encontrado, ¡ve al checkout!";
+        }
+      } catch (err) {
+        console.error(err);
+        errorMsg.textContent = "⚠️ Error al verificar, inténtalo de nuevo.";
+      }
+    });
+
+    // Rellenar email guardado, si existe
+    window.addEventListener("load", () => {
+      const saved = localStorage.getItem("savedEmail");
+      if (saved) {
+        document.getElementById("email").value = saved;
+      }
+    });
+
+    // Evento Pixel: InitiateCheckout con retraso de 300ms
+    const checkoutBtn = document.getElementById("checkoutBtn");
+    if(checkoutBtn){
+      checkoutBtn.addEventListener("click", function(e){
+        e.preventDefault();
+        fbq('track', 'InitiateCheckout', {
+          content_name: 'Checkout Pintando la Palabra',
+          value: 19.90,
+          currency: 'BRL'
+        });
+        setTimeout(() => window.location.href = checkoutBtn.href, 300);
+      });
+    }
+  </script>
+</body>
+</html>
